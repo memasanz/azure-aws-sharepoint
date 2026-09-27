@@ -47,7 +47,7 @@ npm run dev      # http://localhost:5173
 - Delegated Graph permissions: `User.Read`, `Sites.Read.All`, `Sites.Selected`.
 - Public client (PKCE) — **no client secret**.
 
-## Gate (SPRINT-PLAN Sprint 3)
+## Gate (spec §13)
 
 - ✅ Owner grants read via the portal; the reader Lambda then reads that site.
 - ✅ Non-owners get a clear 403; no other app/role can be targeted.

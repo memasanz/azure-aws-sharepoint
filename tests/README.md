@@ -16,7 +16,7 @@ pytest -v
 Tests are **skipped** automatically if `APIM_READ_URL`/`VALID_TOKEN` are unset, so
 they're safe to keep in CI before the environment exists.
 
-## Gate (spec §12 / SPRINT-PLAN Sprint 2)
+## Gate (spec §12)
 
 - ✅ valid token → 200
 - ✅ missing / tampered / garbage token → 401
