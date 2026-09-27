@@ -352,6 +352,7 @@ Together these ensure only the intended Lambda can traverse the chain.
 - **Q9.** Are whole-**site** grants ever needed (requires admin path), or is directory-level sufficient?
 - **Q10.** Portal hosting (App Service, Container Apps, Static Web App + API) and its own sign-in/Entra app registration?
 - **Q11.** Grant lifecycle: expiration, periodic recertification, and revocation SLA?
+- **Q12.** Grant registry/datastore: is one needed at all? SharePoint (the permission objects) is the source of truth, so the portal can list/inventory grants via live Graph reads and emit grant/revoke audit events to App Insights — no datastore required. Add a **Cosmos DB** collection only if we later need approval-workflow state, grant-expiry scheduling, or a central cross-owner catalog/reporting view. (Local SQLite on App Service is explicitly rejected — ephemeral disk, no scale-out.)
 
 ---
 

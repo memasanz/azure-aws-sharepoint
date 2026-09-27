@@ -10,6 +10,12 @@ Graph (`Selected` read) → SharePoint.
 Plus a **self-service portal** so a SharePoint site Owner can grant the reader
 directory-level read access themselves (no admin, no secret).
 
+## Architecture
+
+![Architecture](./docs/architecture.jpg)
+
+Editable source: [`docs/architecture.drawio`](./docs/architecture.drawio).
+
 See:
 - [`PRODUCT-SPEC.md`](./PRODUCT-SPEC.md) — the full product spec.
 - [`docs/RUNBOOK.md`](./docs/RUNBOOK.md) — cutover + steady-state operations.
