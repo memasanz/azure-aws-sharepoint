@@ -1,0 +1,74 @@
+<!--
+  Full APIM policy (Sprint B1): validate Cognito JWT -> acquire Graph token as
+  APIM's managed identity -> read a SharePoint folder via Microsoft Graph.
+
+  Named value {{identity-pool-id}} is provisioned by infra/azure/main.bicep and
+  equals the Cognito Identity Pool ID (the JWT `aud`).
+
+  Caller contract:
+    GET {gateway}/sharepoint/read?siteId={graph-site-id}&path={folder/path}
+    Authorization: Bearer <cognito-jwt>
+
+  NOTE (spec §7.5): if <openid-config> auto-discovery fails against Cognito, swap
+  to a static <issuer-signing-keys> block populated from the JWKS URL.
+-->
+<policies>
+  <inbound>
+    <base />
+
+    <!-- 1. Validate the inbound Cognito JWT (spec §7.5) -->
+    <validate-jwt header-name="Authorization"
+                  failed-validation-httpcode="401"
+                  failed-validation-error-message="Invalid or unauthorized token">
+      <openid-config url="https://cognito-identity.amazonaws.com/.well-known/openid-configuration" />
+      <issuers>
+        <issuer>https://cognito-identity.amazonaws.com</issuer>
+      </issuers>
+      <audiences>
+        <audience>{{identity-pool-id}}</audience>
+      </audiences>
+      <!-- B2 hardening: pin the caller to the single allowed Cognito identity -->
+      <required-claims>
+        <claim name="sub" match="all">
+          <value>{{allowed-cognito-sub}}</value>
+        </claim>
+      </required-claims>
+    </validate-jwt>
+
+    <!-- B2 hardening: per-caller rate limit, keyed by the JWT subject -->
+    <rate-limit-by-key calls="60" renewal-period="60"
+                       counter-key="@(context.Request.Headers.GetValueOrDefault(&quot;Authorization&quot;, &quot;&quot;).AsJwt()?.Subject ?? &quot;anonymous&quot;)" />
+
+    <!-- 2. Capture the requested site + folder path from the query string -->
+    <set-variable name="siteId" value="@(context.Request.Url.Query.GetValueOrDefault(&quot;siteId&quot;, &quot;&quot;))" />
+    <set-variable name="itemPath" value="@(context.Request.Url.Query.GetValueOrDefault(&quot;path&quot;, &quot;&quot;))" />
+
+    <!-- 2a. Reject empty required inputs -->
+    <choose>
+      <when condition="@(string.IsNullOrEmpty((string)context.Variables[&quot;siteId&quot;]))">
+        <return-response>
+          <set-status code="400" reason="Missing siteId" />
+        </return-response>
+      </when>
+    </choose>
+
+    <!-- 3. Acquire a Microsoft Graph token as APIM's managed identity (spec §7.4).
+         This overwrites the Authorization header with the Graph token for the
+         backend call. -->
+    <authentication-managed-identity resource="https://graph.microsoft.com" />
+
+    <!-- 4. Route to Graph and read (list children of) the folder, read-only -->
+    <set-backend-service base-url="https://graph.microsoft.com/v1.0" />
+    <rewrite-uri template='@($"/sites/{(string)context.Variables["siteId"]}/drive/root:/{(string)context.Variables["itemPath"]}:/children")' copy-unmatched-params="false" />
+    <set-method>GET</set-method>
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>

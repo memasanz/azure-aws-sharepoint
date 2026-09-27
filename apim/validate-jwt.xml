@@ -1,0 +1,55 @@
+<!--
+  Sprint B0 starter policy: inbound Cognito JWT validation only.
+  Apply to a test APIM API operation to prove the token hop.
+
+  Replace {{identity-pool-id}} with the Terraform output `identity_pool_id`
+  (that value is the token's `aud` claim).
+
+  NOTE (spec §7.5): Cognito's OpenID discovery document is non-standard. If
+  <openid-config> auto-discovery fails, comment it out and use the direct JWKS
+  URL variant below instead. Record which one worked for the go/no-go gate.
+-->
+<policies>
+  <inbound>
+    <base />
+
+    <validate-jwt header-name="Authorization"
+                  failed-validation-httpcode="401"
+                  failed-validation-error-message="Invalid or unauthorized token">
+
+      <!-- Preferred: auto-discovery of Cognito's signing keys -->
+      <openid-config url="https://cognito-identity.amazonaws.com/.well-known/openid-configuration" />
+
+      <!-- Fallback if discovery fails (uncomment, and comment out <openid-config>):
+      <issuer-signing-keys>
+        <key n="..." e="..." />  // populate from https://cognito-identity.amazonaws.com/.well-known/jwks_uri
+      </issuer-signing-keys>
+      -->
+
+      <issuers>
+        <issuer>https://cognito-identity.amazonaws.com</issuer>
+      </issuers>
+
+      <audiences>
+        <audience>{{identity-pool-id}}</audience>
+      </audiences>
+
+      <!-- Sprint B2 adds the sub pin:
+      <required-claims>
+        <claim name="sub" match="all">
+          <value>{{allowed-cognito-identity-id}}</value>
+        </claim>
+      </required-claims>
+      -->
+    </validate-jwt>
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>

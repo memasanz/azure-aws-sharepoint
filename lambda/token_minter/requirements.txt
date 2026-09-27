@@ -1,0 +1,3 @@
+# The Lambda Python runtime already includes boto3; no extra dependencies for the
+# spike. Listed here for local testing / clarity.
+boto3>=1.34.0

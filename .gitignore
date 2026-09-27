@@ -1,0 +1,48 @@
+# ---- Terraform ----
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+crash.log
+infra/**/build/
+
+# ---- Bicep (compiled output) ----
+infra/**/*.json
+!infra/**/*.parameters.json
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---- Node / portal frontend ----
+node_modules/
+dist/
+.vite/
+
+# ---- Portal runtime ----
+portal/**/grants.db
+*.sqlite
+*.sqlite3
+
+# ---- Secrets / local env (keep the *.example templates) ----
+.env
+.env.*
+!.env.example
+!*.env.example
+
+# ---- Lambda build artifacts ----
+*.zip
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
